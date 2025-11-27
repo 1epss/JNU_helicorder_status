@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Helicorder - Quick Search</title>
+</head>
+<body>
+    <h2 style="text-align:center;">날짜별 모든 관측소 Helicorder</h2>
+    <hr>
+    <div style="border-top:1px;margin-top:8px;">
+        날짜 <input type="date" id="quickDate">&nbsp;&nbsp;
+        성분 <select id="quickComp"><option value="Z">Z</option><option value="N">N</option><option value="E">E</option></select>&nbsp;&nbsp;
+        <button type="button" id="quickSearchBtn">검색</button>
+    </div>
+    <br>
+
+    <fieldset><legend>Helicorder</legend>
+        <div id="quickResults" style="margin-top:12px;text-align:center;"></div>
+    <script>
+    (function(){
+        const qBtn = document.getElementById('quickSearchBtn');
+        const qDate = document.getElementById('quickDate');
+        const qComp = document.getElementById('quickComp');
+        const quickOut = document.getElementById('quickResults');
+
+        function checkImage(url){
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url;
+            });
+        }
+
+        qBtn.addEventListener('click', async function(){
+            quickOut.innerHTML = '';
+            const dateVal = qDate.value;
+            const compVal = qComp.value;
+
+            if(!dateVal){ quickOut.textContent = '날짜를 선택하세요.'; return; }
+            if(!compVal){ quickOut.textContent = '성분을 선택하세요.'; return; }
+
+            quickOut.textContent = '검색 중... (후보 검사 중)';
+            const ymd = dateVal.replace(/-/g,'');
+            const timestamp = ymd + '0000';
+            const exts = ['.jpg', '.png'];
+            const dbg = document.createElement('div');
+            dbg.style.fontSize = '0.85rem';
+            dbg.style.color = '#444';
+            dbg.style.marginTop = '8px';
+            quickOut.appendChild(dbg);
+            const found = [];
+
+            const fallbackStations = ['JN01','JN02'];
+            const stationsToTry = (typeof stationsList !== 'undefined' && stationsList.length) ? stationsList : fallbackStations;
+
+            for(const station of stationsToTry){
+                for(const ext of exts){
+                    const candidate = `plots/helicorder_${station}_${timestamp}_${compVal}${ext}`;
+                    const line = document.createElement('div');
+                    line.textContent = `검사: ${candidate}`;
+                    dbg.appendChild(line);
+                    const ok = await checkImage(candidate);
+                    line.textContent = `검사: ${candidate} -> ${ok ? '존재' : '없음'}`;
+                    if(ok){
+                        found.push({station, src: candidate});
+                        break;
+                    }
+                }
+            }
+
+            quickOut.innerHTML = '';
+            if(found.length === 0){ quickOut.textContent = '해당 조건의 이미지가 없습니다.'; return; }
+
+            for(const item of found){
+                const wrap = document.createElement('div');
+                wrap.style.display = 'inline-block';
+                wrap.style.margin = '8px';
+                wrap.style.textAlign = 'center';
+
+                const label = document.createElement('div');
+                label.textContent = item.station;
+                label.style.fontSize = '0.9rem';
+                label.style.marginBottom = '6px';
+                wrap.appendChild(label);
+
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.style.maxWidth = '320px';
+                img.style.maxHeight = '180px';
+                img.style.display = 'block';
+                img.style.cursor = 'pointer';
+                img.alt = item.src;
+                img.addEventListener('click', ()=>{
+                    // open in parent context (new tab)
+                    try{ parent.window.open(item.src, '_blank'); }catch(e){ window.open(item.src, '_blank'); }
+                });
+
+                wrap.appendChild(img);
+                quickOut.appendChild(wrap);
+            }
+        });
+    })();
+    </script>
+</fieldset>
+</body>
+</html>

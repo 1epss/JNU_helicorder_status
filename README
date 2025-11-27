@@ -1,0 +1,51 @@
+# statmon - Helicorder HTML viewer
+
+충청, 전라 내륙 연구용 지진관측소로부터 파형을 불러와 Helicorder로 출력합니다.
+출력된 Helicorder는 HTML 파일의 형태로 확인할 수 있습니다.
+
+
+## draw_helicorder_v2.py
+
+서버 내 저장된 mseed 파일로부터 Helicorder를 그리는 파이썬 파일입니다.
+코드 실행 날짜 기준 어제 날짜의 mseed 파일을 불러옵니다.
+해당 코드는 crontab을 이용해 매일 오전 9시에 자동으로 실행됩니다.
+
+실행 시간, 실행 내용 등은 crontab -e 에서 수정할 수 있습니다.
+
+
+## helicorder_one_station.html
+
+지정한 날짜 범위 내 특정 관측소의 Helicorder를 확인할 수 있는 HTML 파일입니다.
+시작날짜와 종료날짜, 관측소명 및 확인하고자 하는 성분(Z,N,E)를 선택하여 조건에 맞는 helicorder를 출력합니다.
+출력된 helicorder 클릭 시 새 창에서 이미지 파일로 나타나며, 저장할 수 있습니다.
+
+
+## helicorder_all_stations.html
+
+WIP
+
+
+## plots
+
+draw_helicorder_v2.py 실행 결과 생성된 helicorder png파일들이 저장되는 경로입니다.
+
+
+## scripts
+### draw_helicorder_v1.py
+
+과거 버전의 helicorder를 출력합니다. 
+
+### test.py
+
+특정 날짜를 선택해서 helicorder를 출력합니다.
+
+
+
+
+## py파일 실행
+
+폴더 내 .venv 가상환경에 있는 파이썬을 불러옵니다.
+
+source ~/helicorder/.venv/bin/activate
+python test.py
+

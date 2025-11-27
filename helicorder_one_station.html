@@ -1,0 +1,186 @@
+<!-- Skeleton Code -->
+
+<!DOCTYPE html>         
+<html lang="ko">       
+<head>                      
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">     
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helicorder_one_station.HTML</title>
+
+    
+</head>
+<body>
+    <h1 style = "text-align: center;">충청·전라 내륙 연구용 지진관측소 Helicorder</h1><br>
+    <h2>날짜·관측소별 Helicorder<br></h2>
+    <hr>
+             시작 <input type="date" id="startDate" name="startDate">&nbsp;&nbsp;&nbsp; 종료 <input type="date" id="endDate" name="endDate">&nbsp;&nbsp;&nbsp; 관측소명 <input type="text" id="station" name="station" placeholder="예: JN02">&nbsp;&nbsp;&nbsp; 성분:
+             <label style="margin-left:6px"><input type="checkbox" id="compZ" name="comp" value="Z" checked> Z</label>
+             <label style="margin-left:6px"><input type="checkbox" id="compN" name="comp" value="N" checked> N</label>
+             <label style="margin-left:6px"><input type="checkbox" id="compE" name="comp" value="E" checked> E</label>
+             &nbsp;&nbsp;&nbsp; <button type="button" id="searchBtn">검색</button>
+                 <br>
+    <br>
+
+            <fieldset>
+            <legend>Helicorder</legend>
+            <div id="imageContainer" style="margin-top:12px;">
+                <img id="resultImg" src="" style="display:none;width:90%;max-width:1100px;height:auto;display:block;margin:8px auto;box-shadow:0 6px 18px rgba(0,0,0,0.18);">
+                <p id="msg" style="color:#c00;text-align:center;margin:0;font-size:0.95rem"></p>
+            </div>
+
+            <script>
+                (function(){
+                    const btn = document.getElementById('searchBtn');
+                    const dateInput = document.getElementById('startDate');
+                    const stationInput = document.getElementById('station');
+                    const msg = document.getElementById('msg');
+                    const resultImg = document.getElementById('resultImg');
+
+                    function checkImage(url){
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => resolve(true);
+                            img.onerror = () => resolve(false);
+                            img.src = url;
+                        });
+                    }
+
+                    async function tryLoadImagesInRange(startStr, endStr){
+                        if(!startStr){
+                            msg.textContent = '시작 날짜를 선택하세요.';
+                            resultImg.src = '';
+                            return;
+                        }
+                        const station = stationInput ? stationInput.value.trim() : '';
+                        if(!station){
+                            msg.textContent = '관측소명을 입력하세요.';
+                            resultImg.src = '';
+                            return;
+                        }
+
+                        const comps = Array.from(document.querySelectorAll('input[name="comp"]:checked')).map(n=>n.value);
+                        if(comps.length === 0){
+                            msg.textContent = '성분(Z/N/E)을 하나 이상 선택하세요.';
+                            resultImg.src = '';
+                            return;
+                        }
+
+                        if(!endStr) endStr = startStr;
+
+                        let start = new Date(startStr);
+                        let end = new Date(endStr);
+                        
+			if(start > end){ const t = start; start = end; end = t; }
+
+                        msg.textContent = '이미지 로드 중...';
+                        resultImg.src = '';
+
+                        const exts = ['.jpg', '.png'];
+                        const foundByDate = []; // { ymd, label, images: [src...] }
+
+                        function formatYMD_local(d){
+                            const Y = d.getFullYear();
+                            const M = String(d.getMonth() + 1).padStart(2, '0');
+                            const D = String(d.getDate()).padStart(2, '0');
+                            return '' + Y + M + D;
+                        }
+
+                        for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)){
+                            const ymd = formatYMD_local(d);
+                            const timestamp = ymd + '0000';
+                            const group = { ymd, label: ymd, images: [] };
+
+                            for(const comp of comps){
+                                for(const ext of exts){
+                                    const candidate = `plots/helicorder_${station}_${timestamp}_${comp}${ext}`;
+                                    const ok = await checkImage(candidate);
+                                    if(ok){
+                                        if(!group.images.includes(candidate)) group.images.push(candidate);
+                                        break; 
+                                    }
+                                }
+                            }
+
+                            if(group.images.length > 0) foundByDate.push(group);
+                        }
+
+                        const prevThumbs = document.getElementById('thumbs');
+                        if(prevThumbs) prevThumbs.remove();
+
+                        if(foundByDate.length === 0){
+                            msg.textContent = '해당 범위에 맞는 이미지가 없습니다.';
+                            resultImg.src = '';
+                            return;
+                        }
+
+                        msg.textContent = '';
+
+                        const thumbs = document.createElement('div');
+                        thumbs.id = 'thumbs';
+                        thumbs.style.textAlign = 'center';
+                        thumbs.style.marginTop = '8px';
+
+                        for(const grp of foundByDate){
+                            const row = document.createElement('div');
+                            row.style.display = 'flex';
+                            row.style.justifyContent = 'center';
+                            row.style.alignItems = 'center';
+                            row.style.margin = '6px 0';
+
+                            const imgsWrap = document.createElement('div');
+                            imgsWrap.style.display = 'flex';
+                            imgsWrap.style.flexWrap = 'nowrap';
+                            imgsWrap.style.alignItems = 'center';
+                            imgsWrap.style.justifyContent = 'flex-start';
+                            imgsWrap.style.overflowX = 'auto';
+                            imgsWrap.style.gap = '0px';
+
+                            const count = grp.images.length || 1;
+                            const pct = Math.floor(100 / count);
+                            for(const src of grp.images){
+                                const im = document.createElement('img');
+                                im.src = src;
+                                im.style.flex = `0 0 ${pct}%`;
+                                im.style.maxWidth = `${pct}%`;
+                                im.style.boxSizing = 'border-box';
+                                im.style.height = 'auto';
+                                im.style.padding = '4px';
+                                im.style.cursor = 'pointer';
+                                im.style.border = '1px solid #ddd';
+                                im.style.borderRadius = '4px';
+                                im.style.padding = '0px';
+                                im.style.margin = '0px';
+                                im.alt = src;
+                                im.addEventListener('click', () => {
+                                    try{ window.open(src, '_blank'); }catch(e){ /* ignore */ }
+                                });
+                                imgsWrap.appendChild(im);
+                            }
+
+                            row.appendChild(imgsWrap);
+                            thumbs.appendChild(row);
+                        }
+
+                        document.getElementById('imageContainer').appendChild(thumbs);
+                    }
+
+                    btn.addEventListener('click', function(){
+                        const startVal = dateInput.value; // YYYY-MM-DD
+                        const endVal = document.getElementById('endDate') ? document.getElementById('endDate').value : '';
+                        tryLoadImagesInRange(startVal, endVal);
+                    });
+
+                })();
+            </script>
+
+            </fieldset>
+        
+    <br>
+
+
+</body>
+</html>
+
+<!-- 
+-->
