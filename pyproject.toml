@@ -1,0 +1,31 @@
+[project]
+name = "jnu-helicorder-status"
+version = "0.1.0"
+description = "Helicorder HTML Viewer"
+readme = "README.md"
+requires-python = "==3.12.3"
+dependencies = [
+    "certifi==2025.11.12",
+    "charset-normalizer==3.4.4",
+    "contourpy==1.3.3",
+    "cycler==0.12.1",
+    "decorator==5.2.1",
+    "fonttools==4.60.1",
+    "greenlet==3.2.4",
+    "idna==3.11",
+    "kiwisolver==1.4.9",
+    "lxml==6.0.2",
+    "matplotlib==3.10.7",
+    "numpy==2.3.4",
+    "obspy==1.4.2",
+    "packaging==25.0",
+    "pillow==12.0.0",
+    "pyparsing==3.2.5",
+    "python-dateutil==2.9.0.post0",
+    "requests==2.32.5",
+    "scipy==1.16.3",
+    "setuptools==80.9.0",
+    "six==1.17.0",
+    "sqlalchemy==1.4.54",
+    "urllib3==2.5.0",
+]
