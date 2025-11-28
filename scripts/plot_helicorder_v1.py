@@ -48,4 +48,3 @@ for tr in st:
     )
 
 print("All dayplots saved successfully!")
-
