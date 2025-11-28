@@ -1,6 +1,6 @@
 # JNU_helicorder_status
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Supported Python versions](https://img.shields.io/badge/python-3.12-blue) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Supported Python versions](https://img.shields.io/badge/python-3.12.3-blue)](https://www.python.org/downloads/release/python-3123) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
 
 본 프로젝트는 **충청·전라 내륙 지진관측소의 파형 데이터**를 활용하여 **일일 자동 헬리코더(Helicorder) 시각화 시스템** 구축하는 것을 목표로 합니다.
@@ -76,7 +76,25 @@ python draw_helicorder_v2.py
 
 ## 🧩 Scripts
 
-WIP
+### draw_helicorder_v2.py
+- 지정 경로 내 저장된 지진파형(MSEED Format)으로부터 Helicorder 자동 생성
+- 실행 날짜 기준 **이전 날짜(어제)** 의 데이터를 불러옴
+- `crontab`을 통해 매일 오전 9시에 자동 실행되도록 설정 가능
+---
+
+### test.py (WIP)
+- 특정 날짜를 지정해 Helicorder를 생성
+
+---
+
+### helicorder_one_station.html
+- 특정 관측소, 날짜 범위, 성분(Z/N/E)을 선택하여 `plots` 경로 내 Helicorder 탐색
+- 출력된 그래프 클릭 시 새 창에서 이미지로 열리며, 저장 가능
+
+---
+
+### helicorder_all_stations.html (WIP)
+- 특정 날짜의 모든 관측소 Helicorder를 일괄 탐색
 
 ---
 
