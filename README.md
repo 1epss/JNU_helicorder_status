@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Supported Python versions](https://img.shields.io/badge/python-3.12.3-blue)](https://www.python.org/downloads/release/python-3123) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
 
-본 프로젝트는 **충청·전라 내륙 지진관측소의 파형 데이터**를 활용하여 **일일 자동 헬리코더(Helicorder) 시각화 시스템** 구축하는 것을 목표로 합니다.
+본 프로젝트는 **충청·전라 내륙 지진관측소의 파형 데이터**를 활용하여 **일일 자동 헬리코더(Helicorder) 시각화 시스템**을 구축하는 것을 목표로 합니다.
 
 ---
 
@@ -88,13 +88,14 @@ python draw_helicorder_v2.py
 ---
 
 ### helicorder_one_station.html
-- 특정 관측소, 날짜 범위, 성분(Z/N/E)을 선택하여 `plots` 경로 내 Helicorder 탐색
-- 출력된 그래프 클릭 시 새 창에서 이미지로 열리며, 저장 가능
+- 특정 관측소명, 날짜 범위, 성분(Z/N/E)을 선택하여 `plots` 경로 내 Helicorder 이미지 검색
+- 검색 결과로 표시된 그래프는 클릭 시 새 창에서 원본 이미지로 열리며, 저장 가능
 
 ---
 
-### helicorder_all_stations.html (WIP)
-- 특정 날짜의 모든 관측소 Helicorder를 일괄 탐색
+### helicorder_all_stations.html
+- 특정 날짜를 기준으로 모든 관측소의 Helicorder 이미지 일괄 검색
+- 검색 결과로 표시된 그래프는 클릭 시 새 창에서 원본 이미지로 열리며, 저장 가능
 
 ---
 

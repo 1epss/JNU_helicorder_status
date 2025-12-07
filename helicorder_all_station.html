@@ -1,108 +1,209 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Helicorder - Quick Search</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helicorder_all_station.HTML</title>
+  <style>
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .controls button {
+      margin-left: 8px;
+    }
+  </style>
 </head>
+
 <body>
-    <h2 style="text-align:center;">날짜별 모든 관측소 Helicorder</h2>
-    <hr>
-    <div style="border-top:1px;margin-top:8px;">
-        날짜 <input type="date" id="quickDate">&nbsp;&nbsp;
-        성분 <select id="quickComp"><option value="Z">Z</option><option value="N">N</option><option value="E">E</option></select>&nbsp;&nbsp;
-        <button type="button" id="quickSearchBtn">검색</button>
+  <h1 style="text-align:center;">충청·전라 내륙 연구용 지진관측소 Helicorder</h1>
+  <h2>날짜별 모든 관측소 Helicorder</h2>
+  <hr>
+
+  <div class="controls">
+    <label for="selectDate">날짜</label>
+    <input type="date" id="selectDate" name="selectDate">
+
+    <span>성분:</span>
+    <label><input type="checkbox" name="comp" value="Z" checked> Z</label>
+    <label><input type="checkbox" name="comp" value="N" checked> N</label>
+    <label><input type="checkbox" name="comp" value="E" checked> E</label>
+
+    <button type="button" id="searchBtn">검색</button>
+  </div>
+
+  <fieldset>
+    <legend>Helicorder</legend>
+    <div id="imageContainer" style="margin-top:12px;">
+      <p id="msg" style="color:#c00;text-align:center;margin:0;font-size:0.95rem"></p>
     </div>
-    <br>
 
-    <fieldset><legend>Helicorder</legend>
-        <div id="quickResults" style="margin-top:12px;text-align:center;"></div>
     <script>
-    (function(){
-        const qBtn = document.getElementById('quickSearchBtn');
-        const qDate = document.getElementById('quickDate');
-        const qComp = document.getElementById('quickComp');
-        const quickOut = document.getElementById('quickResults');
+      (function () {
+        const btn = document.getElementById('searchBtn');
+        const dateInput = document.getElementById('selectDate');
+        const msg = document.getElementById('msg');
 
-        function checkImage(url){
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = url;
-            });
+        async function getStations() {
+          try {
+            const res = await fetch("stationlist.json?_t=" + Date.now());
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            return data.stations || [];
+          } catch {
+            msg.textContent = "관측소 목록을 불러오는 중 오류가 발생했습니다.";
+            return [];
+          }
         }
 
-        qBtn.addEventListener('click', async function(){
-            quickOut.innerHTML = '';
-            const dateVal = qDate.value;
-            const compVal = qComp.value;
+        function checkImage(url) {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+          });
+        }
 
-            if(!dateVal){ quickOut.textContent = '날짜를 선택하세요.'; return; }
-            if(!compVal){ quickOut.textContent = '성분을 선택하세요.'; return; }
+        btn.addEventListener('click', async function () {
+          const dateStr = dateInput.value;
+          if (!dateStr) {
+            msg.textContent = '날짜를 선택하세요.';
+            return;
+          }
 
-            quickOut.textContent = '검색 중... (후보 검사 중)';
-            const ymd = dateVal.replace(/-/g,'');
-            const timestamp = ymd + '0000';
-            const exts = ['.jpg', '.png'];
-            const dbg = document.createElement('div');
-            dbg.style.fontSize = '0.85rem';
-            dbg.style.color = '#444';
-            dbg.style.marginTop = '8px';
-            quickOut.appendChild(dbg);
-            const found = [];
+          const comps = Array.from(document.querySelectorAll('input[name="comp"]:checked')).map(n => n.value);
+          if (comps.length === 0) {
+            msg.textContent = '성분(Z/N/E)을 하나 이상 선택하세요.';
+            return;
+          }
 
-            const fallbackStations = ['JN01','JN02'];
-            const stationsToTry = (typeof stationsList !== 'undefined' && stationsList.length) ? stationsList : fallbackStations;
+          msg.textContent = '관측소 목록 불러오는 중...';
+          document.getElementById('thumbs')?.remove();
 
-            for(const station of stationsToTry){
-                for(const ext of exts){
-                    const candidate = `plots/helicorder_${station}_${timestamp}_${compVal}${ext}`;
-                    const line = document.createElement('div');
-                    line.textContent = `검사: ${candidate}`;
-                    dbg.appendChild(line);
-                    const ok = await checkImage(candidate);
-                    line.textContent = `검사: ${candidate} -> ${ok ? '존재' : '없음'}`;
-                    if(ok){
-                        found.push({station, src: candidate});
-                        break;
-                    }
+          const stations = await getStations();
+          if (stations.length === 0) {
+            msg.textContent = '관측소 목록이 없습니다.';
+            return;
+          }
+
+          msg.textContent = '이미지 로드 중...';
+          const exts = ['.jpg', '.png'];
+          const ymd = dateStr.replaceAll('-', '');
+          const timestamp = ymd + '0000';
+          const foundImgs = [];
+
+          for (const st of stations) {
+            const images = [];
+            for (const comp of comps) {
+              for (const ext of exts) {
+                const candidate = `plots/helicorder_${st}_${timestamp}_${comp}${ext}`;
+                const ok = await checkImage(candidate);
+                if (ok) {
+                  images.push(candidate);
+                  break;
                 }
+              }
+            }
+            if (images.length > 0) foundImgs.push({ station: st, images });
+          }
+
+          if (foundImgs.length === 0) {
+            msg.textContent = '해당 날짜의 자료가 없습니다.';
+            return;
+          }
+
+          msg.textContent = '';
+
+          const thumbs = document.createElement('div');
+          thumbs.id = 'thumbs';
+          thumbs.style.margin = '0';
+          thumbs.style.padding = '0';
+          thumbs.style.width = '100%';
+
+          const perRow = comps.length === 1 ? 3 : 1;
+
+          for (let i = 0; i < foundImgs.length; i += perRow) {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'flex-start';
+            row.style.margin = '0';
+            row.style.padding = '0';
+            row.style.width = '100%';
+            row.style.gap = '2px';
+            row.style.justifyContent = 'center';
+
+            const rowSubset = foundImgs.slice(i, i + perRow);
+
+            for (const grp of rowSubset) {
+              const box = document.createElement('div');
+              box.style.display = 'flex';
+              box.style.flexDirection = 'column';
+              box.style.alignItems = 'center';
+              box.style.margin = '0';
+              box.style.padding = '0';
+
+              if (perRow === 3) {
+                box.style.flex = '0 0 calc((100% - 4px) / 3)';
+                box.style.maxWidth = 'calc((100% - 4px) / 3)';
+              } else {
+                box.style.flex = '1 1 100%';
+                box.style.maxWidth = '100%';
+              }
+
+              const label = document.createElement('p');
+              label.textContent = grp.station;
+              label.style.margin = '2px 0';
+              label.style.fontWeight = 'bold';
+              label.style.fontSize = '0.9rem';
+              label.style.width = '100%';
+              label.style.textAlign = 'center';
+              box.appendChild(label);
+
+              const imgsWrap = document.createElement('div');
+              imgsWrap.style.display = 'flex';
+              imgsWrap.style.justifyContent = 'center';
+              imgsWrap.style.width = '100%';
+              imgsWrap.style.gap = '2px';
+
+              const compCount = grp.images.length || 1;
+              const pct = 100 / compCount;
+
+              for (const src of grp.images) {
+                const im = document.createElement('img');
+                im.src = src;
+                im.alt = `Helicorder ${grp.station}`;
+                im.style.flex = `0 0 ${pct}%`;
+                im.style.maxWidth = `${pct}%`;
+                im.style.height = 'auto';
+                im.style.cursor = 'pointer';
+                im.style.border = '1px solid #ddd';
+                im.addEventListener('click', () => window.open(src, '_blank'));
+                imgsWrap.appendChild(im);
+              }
+
+              box.appendChild(imgsWrap);
+              row.appendChild(box);
             }
 
-            quickOut.innerHTML = '';
-            if(found.length === 0){ quickOut.textContent = '해당 조건의 이미지가 없습니다.'; return; }
+            thumbs.appendChild(row);
+          }
 
-            for(const item of found){
-                const wrap = document.createElement('div');
-                wrap.style.display = 'inline-block';
-                wrap.style.margin = '8px';
-                wrap.style.textAlign = 'center';
-
-                const label = document.createElement('div');
-                label.textContent = item.station;
-                label.style.fontSize = '0.9rem';
-                label.style.marginBottom = '6px';
-                wrap.appendChild(label);
-
-                const img = document.createElement('img');
-                img.src = item.src;
-                img.style.maxWidth = '320px';
-                img.style.maxHeight = '180px';
-                img.style.display = 'block';
-                img.style.cursor = 'pointer';
-                img.alt = item.src;
-                img.addEventListener('click', ()=>{
-                    // open in parent context (new tab)
-                    try{ parent.window.open(item.src, '_blank'); }catch(e){ window.open(item.src, '_blank'); }
-                });
-
-                wrap.appendChild(img);
-                quickOut.appendChild(wrap);
-            }
+          document.getElementById('imageContainer').appendChild(thumbs);
         });
-    })();
+      })();
     </script>
-</fieldset>
+  </fieldset>
+
+  <br>
 </body>
 </html>
