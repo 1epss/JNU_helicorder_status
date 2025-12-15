@@ -76,25 +76,28 @@ python draw_helicorder_v2.py
 
 ## 🧩 Scripts
 
-### draw_helicorder_v2.py
-- 지정 경로 내 저장된 지진파형(MSEED Format)으로부터 Helicorder 자동 생성
-- 실행 날짜 기준 **이전 날짜(어제)** 의 데이터를 불러옴
-- `crontab`을 통해 매일 오전 9시에 자동 실행되도록 설정 가능
+### plot_helicorder.py
+- 지정 경로 내 저장된 지진파형(MSEED Format)으로부터 일일 Helicorder 이미지 자동 생성
+- 실행일 기준 **이전 날짜** 의 데이터를 불러와 처리
+- `--date` 옵션을 통해 특정 날짜(YYYYMMDD 형식)를 지정 가능
+- 관측소별 진폭 스케일(`station_scale`) 및 진폭 임계값(`threshold_raw`)을 설정 가능
+- 출력 이미지는 `helicorder_<STATION>_<YYYYMMDD>0000_<CHANNEL>.png` 형식으로 저장됨
 ---
 
-### test.py (WIP)
-- 특정 날짜를 지정해 Helicorder를 생성
+### plot_ppsd.py
+- WIP
+
 
 ---
 
 ### helicorder_one_station.html
-- 특정 관측소명, 날짜 범위, 성분(Z/N/E)을 선택하여 `plots` 경로 내 Helicorder 이미지 검색
+- 특정 관측소명, 날짜 범위, 성분(Z/N/E)을 기준으로 경로 내 Helicorder 이미지 검색
 - 검색 결과로 표시된 그래프는 클릭 시 새 창에서 원본 이미지로 열리며, 저장 가능
 
 ---
 
 ### helicorder_all_stations.html
-- 특정 날짜를 기준으로 모든 관측소의 Helicorder 이미지 일괄 검색
+- 특정 날짜를 기준으로 모든 관측소의 Helicorder 이미지 검색
 - 검색 결과로 표시된 그래프는 클릭 시 새 창에서 원본 이미지로 열리며, 저장 가능
 
 ---
